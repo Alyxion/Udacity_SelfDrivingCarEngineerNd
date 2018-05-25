@@ -1,15 +1,30 @@
 name: deepl35
 channels:
   - menpo
+  - anaconda
+  - conda-forge
   - defaults
 dependencies:
+  - click=6.7=py35hcc65ea6_0
+  - flask=0.12.2=py35h7284a24_0
+  - itsdangerous=0.24=py35hfbd69cd_1
+  - bzip2=1.0.6=1
+  - ca-certificates=2018.4.16=0
+  - certifi=2018.4.16=py35_0
+  - eventlet=0.22.1=py_0
+  - ffmpeg=3.4.1=0
+  - greenlet=0.4.13=py35_0
+  - imageio=2.3.0=py35_0
+  - moviepy=0.2.3.4=py_0
+  - openssl=1.0.2o=0
+  - python-engineio=2.0.4=py_0
+  - python-socketio=1.9.0=py_0
+  - x264=20131218=0
   - _nb_ext_conf=0.4.0=py35_1
   - anaconda-client=1.6.6=py35h6008c02_0
   - appnope=0.1.0=py35hd172556_0
   - asn1crypto=0.23.0=py35ha0e154b_0
   - bleach=2.1.1=py35hc581ebd_0
-  - ca-certificates=2017.08.26=ha1e5d58_0
-  - certifi=2017.11.5=py35hd00889a_0
   - cffi=1.11.2=py35h5806a83_0
   - chardet=3.0.4=py35h16a84c2_1
   - clyent=1.2.2=py35h63ae3d7_0
@@ -65,7 +80,6 @@ dependencies:
   - notebook=5.2.2=py35hdbba414_0
   - numpy=1.12.1=py35h655160a_1
   - olefile=0.44=py35h1f523c6_0
-  - openssl=1.0.2n=hdbc3d79_0
   - pandas=0.21.1=py35h2c08c6b_0
   - pandoc=1.19.2.1=ha5e8f32_1
   - pandocfilters=1.4.2=py35hff87490_1
