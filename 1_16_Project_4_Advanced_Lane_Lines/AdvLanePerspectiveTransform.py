@@ -26,12 +26,12 @@ class LanePerspectiveTransform:
 
         # defines the perspective of the camera image by defining points near the front of the car and close the the
         # center of the image
-        relation_factor = 15.5/1.92
+        relation_factor = 16.2/1.92
         front_perspective_div = 3.0
         back_perspective_div = front_perspective_div*relation_factor
         front_perspective_y_perc = 0.98
         back_perspective_y_perc = 0.63
-        margin_factor = 6
+        margin_factor = 5.0
 
         # trapez points in order bottom left, top left, top right, bottom right (front, back, back, front)
         self.org_src = [(int(img_size[0]/2-img_size[0]/front_perspective_div), int(img_size[1]*front_perspective_y_perc)),

@@ -18,11 +18,13 @@ class AdvLaneThresher:
         """
         Constructor
         """
-        self.hls_thresh = (95, 255)
-        self.sobal_mag_thresh = (10, 255)
+        self.hls_thresh = (160, 255)
+        self.sobal_mag_thresh = (40, 255)
+        self.sobel_x_thresh = (40, 255)
         self.sobel_mag_kernel = 3
+#        self.sobal_dir_thresh = (0.7, 1.3)
         self.sobal_dir_thresh = (0.7, 1.3)
-        self.sobel_dir_kernel = 13
+        self.sobel_dir_kernel = 11
 
     def hls_threshold_mask(self, image):
         """
@@ -45,7 +47,9 @@ class AdvLaneThresher:
         :param image: The original image
         :return: A binary mask flagging all potential lane pixels
         """
+        # image = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
         image = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
+
         sobel_x = cv2.Sobel(image, cv2.CV_64F, 1, 0, ksize=self.sobel_mag_kernel)
         sobel_y = cv2.Sobel(image, cv2.CV_64F, 0, 1, ksize=self.sobel_mag_kernel)
         abs_sobelxy = np.sqrt(sobel_x ** 2 + sobel_y ** 2)
@@ -57,6 +61,23 @@ class AdvLaneThresher:
         binary_output[(eight_bit >= self.sobal_mag_thresh[0]) & (eight_bit <= self.sobal_mag_thresh[1])] = 1
 
         return eight_bit, binary_output
+
+    def sobel_abs_mask_x(self, image):
+        """
+        Highlights pixels which are very likely part of an edge
+        :param image: The original image
+        :return: A binary mask flagging all potential lane pixels
+        """
+        # image = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
+        image = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
+
+        sobel_x = np.absolute(cv2.Sobel(image, cv2.CV_64F, 1, 0, ksize=self.sobel_mag_kernel))
+        eight_bit = np.uint8(255 * sobel_x / np.max(sobel_x))
+        binary_output = np.zeros_like(sobel_x)
+        binary_output[(eight_bit >= self.sobel_x_thresh[0]) & (eight_bit <= self.sobel_x_thresh[1])] = 1
+
+        return eight_bit, binary_output
+
 
     def sobel_dir_mask(self, image):
         """
@@ -85,10 +106,11 @@ class AdvLaneThresher:
         :return: A binary mask containing pixels which are likely part of the lanes
         """
         s, hls_thresh = self.hls_threshold_mask(image)
-        # mag, sobel_mag = self.sobel_mag_mask(image)
+        mag, sobel_mag = self.sobel_mag_mask(image)
         dir, sobel_dir = self.sobel_dir_mask(image)
+        sobx, sobel_x = self.sobel_abs_mask_x(image)
 
         binary_output = np.zeros_like(sobel_dir)
-        binary_output[(hls_thresh==1) & (sobel_dir==1)  ] = 1
+        binary_output[((sobel_x==1) | (hls_thresh==1) | ((sobel_dir==1) & (sobel_mag==1)))] = 1
 
         return binary_output
