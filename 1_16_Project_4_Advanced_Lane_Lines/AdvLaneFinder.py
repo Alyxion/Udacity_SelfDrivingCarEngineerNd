@@ -88,6 +88,8 @@ class LaneFinder:
 
         # Remember curvature
         self.curve_rad = None
+        # Offset to road center
+        self.offset_to_center = None
 
     def clear_history(self):
         """
@@ -339,13 +341,6 @@ class LaneFinder:
             left_fit = left_fit_org
             right_fit = right_fit_org
 
-            # combine coefficients
-            #left_fit = (left_fit_org + right_fit_org)/2.0
-            #right_fit = (left_fit_org + right_fit_org)/2.0
-            # use own bias
-            #left_fit[2] = left_fit_org[2]
-            #right_fit[2] = right_fit_org[2]
-
             # Generate x and y values for plotting
             ploty = np.linspace(0, self.cur_mask.shape[0] - 1, self.cur_mask.shape[0])
             height = self.cur_mask.shape[0]
@@ -396,9 +391,11 @@ class LaneFinder:
             # Combine the result with the original image
             self.out_perspective = cv2.addWeighted(self.original, 1, newwarp, 0.3, 0)
 
+            font = cv2.FONT_HERSHEY_SIMPLEX
             if self.curve_rad is not None:
-                font = cv2.FONT_HERSHEY_SIMPLEX
-                cv2.putText(self.out_perspective, "Estimated curve radius: {:.1f}m".format (self.curve_rad) , (10, 20), font, 0.5, (255, 255, 255), 2, cv2.LINE_AA)
+                cv2.putText(self.out_perspective, "Estimated curve radius: {:.1f}m".format (self.curve_rad) , (10, 40), font, 0.5, (255, 255, 255), 2, cv2.LINE_AA)
+            if self.offset_to_center is not None:
+                cv2.putText(self.out_perspective, "Vehicle offset to lane center: {:.1f}m".format (self.offset_to_center) , (10, 60), font, 0.5, (255, 255, 255), 2, cv2.LINE_AA)
 
     def find_lanes_using_window(self, img):
         """
@@ -457,20 +454,26 @@ class LaneFinder:
             right_fit = np.polyfit(height-righty, rightx, 2)
             self.right_fit_history.append(right_fit)
 
-            # Define conversions in x and y from pixels space to meters
-            ploty = np.linspace(0, self.cur_mask.shape[0] - 1, self.cur_mask.shape[0])
+            scale_x = 3.7 / 800 # highway width in US of 3.7 meters matches about 800 pixels
+            scale_y = 43 / 720
+            y_eval = (self.cur_mask.shape[0]-1)*scale_y
 
-            y_eval = np.max(ploty)
-            left_curverad = ((1 + (2 * left_fit[0] * y_eval + left_fit[1]) ** 2) ** 1.5) / np.absolute(2 * left_fit[0])
-            right_curverad = ((1 + (2 * right_fit[0] * y_eval + right_fit[1]) ** 2) ** 1.5) / np.absolute(
-                2 * right_fit[0])
+            leftx = self.nonzerox[self.left_lane_inds]
+            lefty = self.nonzeroy[self.left_lane_inds]
+            rightx = self.nonzerox[self.right_lane_inds]
+            righty = self.nonzeroy[self.right_lane_inds]
 
-            if self.lane_size is not None and self.lane_size!=0:
-                curve_factor = 3.7 / self.lane_size
-                pix_curve_rad = (left_curverad + right_curverad) / 2
-                self.curve_rad = pix_curve_rad*curve_factor*20
+            # Fit polynomal to top view curves in world space
+            left_fit_cr = np.polyfit(lefty*scale_y, leftx*scale_x, 2)
+            right_fit_cr = np.polyfit(righty*scale_y, rightx*scale_x, 2)
 
-                # print("Curvature {} {} {} {}".format(pix_curve_rad, self.lane_size, curve_rad, curve_factor))
+            left_curverad = ((1 + (2 * left_fit_cr[0] * y_eval + left_fit_cr[1]) ** 2) ** 1.5) / np.absolute(2 * left_fit_cr[0])
+            right_curverad = ((1 + (2 * right_fit_cr[0] * y_eval + right_fit_cr[1]) ** 2) ** 1.5) / np.absolute(2 * right_fit_cr[0])
+
+            self.curve_rad = (left_curverad+right_curverad)/2
+
+            pix_off_to_center = self.cur_mask.shape[1]/2 - (self.leftx_base + self.rightx_base)/2
+            self.offset_to_center = pix_off_to_center * scale_x
 
         self.draw_lane_lines()
 

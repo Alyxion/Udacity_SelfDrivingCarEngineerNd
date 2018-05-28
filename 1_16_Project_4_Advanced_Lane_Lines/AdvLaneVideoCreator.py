@@ -85,6 +85,8 @@ def create_perspective_video():
 
     white_output = combined
     clip1 = VideoFileClip(project_video)
+    # clip1 = clip1.subclip(0.0, 1.0)
+
     white_clip = clip1.fl_image(process_image)
     white_clip.write_videofile(white_output, audio=False)
 
