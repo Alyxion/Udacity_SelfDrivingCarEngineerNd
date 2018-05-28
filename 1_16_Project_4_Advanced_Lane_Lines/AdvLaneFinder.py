@@ -463,17 +463,18 @@ class LaneFinder:
             rightx = self.nonzerox[self.right_lane_inds]
             righty = self.nonzeroy[self.right_lane_inds]
 
-            # Fit polynomal to top view curves in world space
-            left_fit_cr = np.polyfit(lefty*scale_y, leftx*scale_x, 2)
-            right_fit_cr = np.polyfit(righty*scale_y, rightx*scale_x, 2)
+            if rightx.shape[0]!=0 and leftx.shape[0]!=0:
+                # Fit polynomal to top view curves in world space
+                left_fit_cr = np.polyfit(lefty*scale_y, leftx*scale_x, 2)
+                right_fit_cr = np.polyfit(righty*scale_y, rightx*scale_x, 2)
 
-            left_curverad = ((1 + (2 * left_fit_cr[0] * y_eval + left_fit_cr[1]) ** 2) ** 1.5) / np.absolute(2 * left_fit_cr[0])
-            right_curverad = ((1 + (2 * right_fit_cr[0] * y_eval + right_fit_cr[1]) ** 2) ** 1.5) / np.absolute(2 * right_fit_cr[0])
+                left_curverad = ((1 + (2 * left_fit_cr[0] * y_eval + left_fit_cr[1]) ** 2) ** 1.5) / np.absolute(2 * left_fit_cr[0])
+                right_curverad = ((1 + (2 * right_fit_cr[0] * y_eval + right_fit_cr[1]) ** 2) ** 1.5) / np.absolute(2 * right_fit_cr[0])
 
-            self.curve_rad = (left_curverad+right_curverad)/2
+                self.curve_rad = (left_curverad+right_curverad)/2
 
-            pix_off_to_center = self.cur_mask.shape[1]/2 - (self.leftx_base + self.rightx_base)/2
-            self.offset_to_center = pix_off_to_center * scale_x
+                pix_off_to_center = self.cur_mask.shape[1]/2 - (self.leftx_base + self.rightx_base)/2
+                self.offset_to_center = pix_off_to_center * scale_x
 
         self.draw_lane_lines()
 

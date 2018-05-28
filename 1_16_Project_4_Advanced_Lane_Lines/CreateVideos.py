@@ -10,6 +10,6 @@ import AdvLaneVideoCreator
 
 print("Creating submission video...")
 
-# AdvLaneVideoCreator.create_perspective_video()
-# AdvLaneVideoCreator.create_top_video_photo()
+AdvLaneVideoCreator.create_perspective_video()
+AdvLaneVideoCreator.create_top_video_photo()
 AdvLaneVideoCreator.create_top_video()

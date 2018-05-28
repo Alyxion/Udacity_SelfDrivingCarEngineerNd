@@ -28,7 +28,7 @@ class AdvCamera:
     def calibrate_camera(self, images):
         """
         Calibrates the camera using a set of images
-        :param images: A list of images containing a chessboard with 3 inner column corners and 7 inner row corners
+        :param images: A list of images containing a chessboard with 9 inner column corners and 6 inner row corners
         """
         # prepare object points, like (0,0,0), (1,0,0), (2,0,0) ....,(6,5,0)
         objp = np.zeros((6 * 9, 3), np.float32)
@@ -63,6 +63,7 @@ class AdvCamera:
                 plt.imshow(img)
                 index += 1
 
+        # Calibrate camera using the lists of object and image points
         ret, self.mtx, self.dist, rvecs, tvecs = cv2.calibrateCamera(objpoints, imgpoints, gray.shape[::-1], None, None)
 
     def chessboard_calibrate_camera(self):
