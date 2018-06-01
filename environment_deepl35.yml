@@ -1,22 +1,41 @@
 name: deepl35
 channels:
   - menpo
-  - anaconda
   - conda-forge
+  - anaconda
   - defaults
 dependencies:
-  - click=6.7=py35hcc65ea6_0
-  - flask=0.12.2=py35h7284a24_0
-  - itsdangerous=0.24=py35hfbd69cd_1
-  - bzip2=1.0.6=1
-  - ca-certificates=2018.4.16=0
+  - bokeh=0.12.16=py35_0
+  - ca-certificates=2018.03.07=0
   - certifi=2018.4.16=py35_0
+  - click=6.7=py35hcc65ea6_0
+  - cloudpickle=0.5.3=py35_0
+  - cytoolz=0.9.0.1=py35h1de35cc_0
+  - dask=0.17.5=py35_0
+  - dask-core=0.17.5=py35_0
+  - distributed=1.21.8=py35_0
+  - flask=0.12.2=py35h7284a24_0
+  - heapdict=1.0.0=py35_2
+  - itsdangerous=0.24=py35hfbd69cd_1
+  - locket=0.2.0=py35h58cf053_1
+  - msgpack-python=0.5.6=py35h04f5b5a_0
+  - networkx=1.11=py35hd138405_0
+  - openssl=1.0.2o=h26aff7b_0
+  - packaging=17.1=py35_0
+  - partd=0.3.8=py35h6fadee7_0
+  - psutil=5.4.5=py35h1de35cc_0
+  - pywavelets=0.5.2=py35h9dc8fb8_0
+  - scikit-image=0.13.1=py35h116c381_0
+  - sortedcontainers=1.5.10=py35_0
+  - tblib=1.3.2=py35h1b9c5fd_0
+  - toolz=0.9.0=py35_0
+  - zict=0.1.3=py35h1ae85d2_0
+  - bzip2=1.0.6=1
   - eventlet=0.22.1=py_0
   - ffmpeg=3.4.1=0
   - greenlet=0.4.13=py35_0
   - imageio=2.3.0=py35_0
   - moviepy=0.2.3.4=py_0
-  - openssl=1.0.2o=0
   - python-engineio=2.0.4=py_0
   - python-socketio=1.9.0=py_0
   - x264=20131218=0
@@ -134,4 +153,5 @@ dependencies:
   - zlib=1.2.11=hf3cbc9b_2
   - opencv3=3.1.0=py35_0
   - tbb=4.3_20141023=0
+prefix: /Users/mikemann/anaconda3/envs/deepl35
 
