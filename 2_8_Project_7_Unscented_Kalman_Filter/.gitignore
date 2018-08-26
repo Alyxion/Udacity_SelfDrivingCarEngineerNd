@@ -1,0 +1,7 @@
+# silly macOS
+.DS_Store
+cmake-build*
+build
+.idea
+# build files
+build/

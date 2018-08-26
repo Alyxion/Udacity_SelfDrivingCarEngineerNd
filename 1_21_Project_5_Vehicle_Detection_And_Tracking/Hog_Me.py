@@ -1,20 +1,65 @@
+#####################################################################################################################
+#                                                                                                                   #
+# This file is part of the 5th project of Udacity's Self-Driving Car Engineer Nd - Vehicle Detection and Tracking   #
+#                                                                                                                   #
+# Copyright (c) 2018 by Michael Ikemann                                                                             #
+#                                                                                                                   #
+#####################################################################################################################
+
 import numpy as np
 from skimage.feature import hog
 import cv2
-import math
 
 class Hoggit:
+    """
+    Huggers gonna hug - Hoggers gonna hog ;-)
 
-    def __init__(self):
-        self.orientations = 12
-        self.pix_per_cell = 16
-        self.cells_per_block = 2
-        self.hog_features = None
+    The hoggit class is responsible for converting an image into a so called "History of Oriented Gradients", short
+    HOG by detecting how intensive specific gradient directions (for example vertically, horizontally or between)
+    are in a specific region of like 8x8 pixels.
+
+    By collecting many positive and negative HOGs, lets say from bananas and non-bananas and feeding the histogram
+    into a classifier such as SVM or a neural network you may then predict if a new picture is likely a banana as well
+    or not.
+
+    Properties:
+
+    orientations: The number of orientations (histogram buckets). 9 is a common value to detect gradients in 20 degree steps.
+    pix_per_cell: Defines the width and height of a histogram cell
+    cells_per_block: Defines the width and height of a block. A single block is just a collection of (shared) cell
+    results. The cells though don't contain precisely the same values because each block is normalized individually.
+    features: The most recent detected features.
+    vis_image: The most recent painted hog image
+    channel: The channel to be used for creating the hog. "ALL" if all channels shall be considered.
+    target_format: The target format into which the RGB image shall be considere. A CV2 conversion enum is required such
+    as cv2.COLOR_RGB2YUV.
+    """
+
+    def __init__(self, channel="ALL", orientations = 9, pix_per_cell = 8, cells_per_block = 2, target_format = cv2.COLOR_RGB2YUV):
+        """
+        Constructor
+        :param channel: The channel to be considered or "ALL" for all channels. "ALL" by default
+        :param orientations: The number of orientations buckets. 9 by default
+        :param pix_per_cell: The width and height of a cell in pixels
+        :param cells_per_block: The width and height of a block in cells
+        :param target_format: The CV2 conversion enum for the RGB original. COLOR_RGB2YUV by default.
+        """
+        self.orientations = orientations
+        self.pix_per_cell = pix_per_cell
+        self.cells_per_block = cells_per_block
+        self.features = None
         self.vis_image = None
-        self.last_image = None
-        self.hog_channel = "ALL"
+        self.channel = channel
+        self.target_format = target_format
 
     def hog_image(self, img, visualize = True, feature_vector = True):
+        """
+        Converts an image into a list of blocks of oriented gradients.
+        :param img: The input image
+        :param visualize: Defines if the HOGs shall be visualized
+        :param feature_vector: Defines if the result shall be flattened. (1D if True, multi-dimensional if not)
+        :return: The feature vector and the visualization. None as second result of visualize is set to False.
+        """
         self.width = img.shape[1]
         self.height = img.shape[0]
         self.cells_x = self.width // self.pix_per_cell
@@ -25,9 +70,9 @@ class Hoggit:
         self.total_blocks = self.x_blocks * self.y_blocks
         self.total_features = self.total_blocks * self.cells_per_block * self.cells_per_block * self.orientations
 
-        img= cv2.cvtColor(img, cv2.COLOR_RGB2YUV)
+        img= cv2.cvtColor(img, self.target_format)
 
-        if self.hog_channel == 'ALL':
+        if self.channel == 'ALL':
             features = []
             for channel in range(img.shape[2]):
                 features.extend(hog(img[:,:,channel], orientations=self.orientations,
@@ -39,14 +84,14 @@ class Hoggit:
             hog_img = None
         else:
             if visualize:
-                features, hog_img = hog(img[:,:,self.hog_channel], orientations=self.orientations,
-                                          pixels_per_cell=(self.pix_per_cell, self.pix_per_cell),
-                                          cells_per_block=(self.cells_per_block, self.cells_per_block),
-                                          block_norm='L2-Hys',
-                                          transform_sqrt=False,
-                                          visualise=visualize, feature_vector=feature_vector)
+                features, hog_img = hog(img[:, :, self.channel], orientations=self.orientations,
+                                        pixels_per_cell=(self.pix_per_cell, self.pix_per_cell),
+                                        cells_per_block=(self.cells_per_block, self.cells_per_block),
+                                        block_norm='L2-Hys',
+                                        transform_sqrt=False,
+                                        visualise=visualize, feature_vector=feature_vector)
             else:
-                features = hog(img[:,:,self.hog_channel], orientations=self.orientations,
+                features = hog(img[:, :, self.channel], orientations=self.orientations,
                                pixels_per_cell=(self.pix_per_cell, self.pix_per_cell),
                                cells_per_block=(self.cells_per_block, self.cells_per_block),
                                block_norm='L2-Hys',
@@ -54,89 +99,51 @@ class Hoggit:
                                visualise=visualize, feature_vector=feature_vector)
                 hog_img = None
 
-        self.vis_image = np.copy(hog_img) if hog_img is not None else None
-        self.hog_features = np.copy(features)
+        self.vis_image = hog_img
+        self.features = np.array(features)
 
         return features, hog_img
 
-    def get_sub_region(self, x, y, width, height):
-        # Note: Work in progress, not used in submission
+    def hog_scan(self, window_width, window_height, step_factor = 1):
+        """
+        An enumerator which scans the last hog result using the given window size.
+        :param window_width: The width of the window in pixels
+        :param window_height: The height of the window in pixels
+        :param step_factor: The block stepping (1 by default)
+        :return: A dictionary containing the "features" in the current region, and the top left "x" and "y" coordinate.
+        """
+        if self.channel == "ALL":
+            all_channels = True
+            offset_per_channel = self.features.shape[0]//3
+        else:
+            all_channels = False
+            offset_per_channel = 0
 
-        if x<0 or y<0 or x+width>self.width or y+height>self.height:
-            return None
+        cells_per_block = self.cells_per_block
+        pix_per_cell = self.pix_per_cell
 
-        cells_x = width // self.pix_per_cell
-        cells_y = height // self.pix_per_cell
-        x_blocks = cells_x - self.cells_per_block + 1
-        y_blocks = cells_y - self.cells_per_block + 1
-        cells_per_block_tot = self.cells_per_block*self.cells_per_block
-        total_blocks = x_blocks * y_blocks
-        x_col = x//self.pix_per_cell
-        y_row = y//self.pix_per_cell
-        per_row = self.x_blocks * self.cells_per_block * self.cells_per_block * self.orientations
-        y_offset = y_row * per_row
-        x_offset = x_col * self.cells_per_block * self.orientations
+        block_size = cells_per_block*cells_per_block*pix_per_cell
+        x_range = window_width//pix_per_cell - cells_per_block+ 1
+        y_range = window_height//pix_per_cell - cells_per_block+ 1
 
-        result = []
+        x_steps = self.features.shape[1]-x_range+1
+        y_steps = offset_per_channel-x_range+1
 
-        s_off = y_offset+x_offset
-        for y_ind in range(y_blocks):
-            c_off = s_off + y_ind*per_row
-            result.append(self.hog_features[c_off:c_off+x_blocks*cells_per_block_tot*self.orientations])
+        for y_off in range(y_steps):
+            for x_off in range(x_steps):
+                xpos = x_off*step_factor
+                ypos = y_off*step_factor
 
-        return np.hstack(result)
+                hog_feat1 = self.features[ypos:ypos+y_range, xpos:xpos+x_range].ravel()
 
-    def visualize_features(self, features, width, height):
-        # Note: Work in progress, not used in submission
-        img = np.zeros((height, width, 3), np.uint8)
+                if all_channels:
+                    hog_feat2 = self.features[offset_per_channel+ypos:offset_per_channel+ypos+y_range, xpos:xpos+x_range].ravel()
+                    hog_feat3 = self.features[2*offset_per_channel+ypos:2*offset_per_channel+ypos+y_range, xpos:xpos+x_range].ravel()
+                    hog_features = np.hstack((hog_feat1, hog_feat2, hog_feat3))
+                else:
+                    hog_features = hog_feat1
 
-        print(features.shape)
+                off_x = int(xpos * pix_per_cell)
+                off_y = int(ypos * pix_per_cell)
 
-        cells_x = width // self.pix_per_cell
-        cells_y = height // self.pix_per_cell
-        x_blocks = cells_x - self.cells_per_block + 1
-        y_blocks = cells_y - self.cells_per_block + 1
-        cells_per_block_tot = self.cells_per_block*self.cells_per_block
-        entries_per_block = self.cells_per_block*self.cells_per_block*self.orientations
-        total_blocks = x_blocks * y_blocks
-
-        per_row = x_blocks * entries_per_block
-
-        gradients = np.zeros((height,width,self.orientations))
-
-        print(gradients.shape)
-
-        for row in range(y_blocks):
-            for col in range(x_blocks):
-                off = row * per_row + col * entries_per_block
-                for orientation in range(self.orientations):
-                    gradients[row][col][orientation] = features[off+orientation]
-
-        print("Painting")
-
-        return self.render_hog(img, gradients)
-
-    def render_hog(self, image, cell_gradient):
-        # Note: Work in progress, not used in submission
-        cell_size = self.pix_per_cell/ 2
-        max_mag = np.array(cell_gradient).max()
-        print(max_mag)
-
-        per_angle =  math.pi/self.orientations
-
-        for y in range(cell_gradient.shape[0]):
-            for x in range(cell_gradient.shape[1]):
-                cell_grad = cell_gradient[y][x]
-                cell_grad /= max_mag
-                angle = 0
-                for magnitude in cell_grad:
-                    cv = math.cos(angle)
-                    sv = math.sin(angle)
-                    x1 = int(x * self.pix_per_cell + magnitude * cell_size * cv)
-                    y1 = int(y * self.pix_per_cell + magnitude * cell_size * sv)
-                    x2 = int(x * self.pix_per_cell - magnitude * cell_size * cv)
-                    y2 = int(y * self.pix_per_cell - magnitude * cell_size * sv)
-                    cv2.line(image, (y1, x1), (y2, x2), int(255 * magnitude))
-                    angle += per_angle
-
-        return image
+                yield {"features": hog_features, "x": off_x, "y": off_y}

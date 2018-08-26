@@ -1,6 +1,6 @@
 #####################################################################################################################
 #                                                                                                                   #
-# This file is part of the 4th project of Udacity's Self-Driving Car Engineer project Advanced Lane Finding         #
+# This file is part of the 4th project of Udacity's Self-Driving Car Engineer Nanodegree - Advanced Lane Finding    #
 #                                                                                                                   #
 # Copyright (c) 2018 by Michael Ikemann                                                                             #
 #                                                                                                                   #

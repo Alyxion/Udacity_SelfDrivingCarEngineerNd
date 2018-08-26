@@ -1,6 +1,6 @@
 #####################################################################################################################
 #                                                                                                                   #
-# This file is part of the 4th project of Udacity's Self-Driving Car Engineer project Advanced Lane Finding         #
+# This file is part of the 4th project of Udacity's Self-Driving Car Engineer Nanodegree - Advanced Lane Finding    #
 #                                                                                                                   #
 # Copyright (c) 2018 by Michael Ikemann                                                                             #
 #                                                                                                                   #
@@ -23,7 +23,7 @@ lane_helper = AdvLaneHelper.AdvLaneHelper(camera)
 thresher = AdvLaneThresher.AdvLaneThresher()
 example_images = lane_helper.get_example_images()
 
-example_image = lane_helper.load_and_undistort(example_images[6])
+example_image = lane_helper.load_and_undistort(example_images[2])
 perspective_transform = AdvLanePerspectiveTransform.LanePerspectiveTransform(example_image)
 
 lane_finder = AdvLaneFinder.LaneFinder(camera, perspective_transform, thresher)
