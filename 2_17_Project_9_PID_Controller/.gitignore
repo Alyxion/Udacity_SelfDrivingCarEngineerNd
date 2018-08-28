@@ -1,0 +1,6 @@
+.vscode
+build
+tags
+.editorconfig
+cmake-build*
+.idea
