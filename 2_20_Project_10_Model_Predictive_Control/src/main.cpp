@@ -91,6 +91,8 @@ int main() {
           double py = j[1]["y"];
           double psi = j[1]["psi"];
           double v = j[1]["speed"];
+          double delta = j[1]["steering_angle"];
+          double a = j[1]["throttle"];
 
           /*
           * TODO: Calculate steering angle and throttle using MPC.
@@ -98,18 +100,65 @@ int main() {
           * Both are in between [-1, 1].
           *
           */
-          double steer_value;
-          double throttle_value;
+
+          // the points we get are global so we first of all need to
+          // transform them into local space to be able to later
+          // make a local decision
+          Eigen::VectorXd dirpoints_x(ptsx.size());
+          Eigen::VectorXd dirpoints_y(ptsy.size());
+          
+          for (int i = 0; i < ptsx.size(); i++) {
+            // get relative x/y
+            double x = ptsx[i] - px;
+            double y = ptsy[i] - py;
+            // rotate around zero point
+            dirpoints_x[i] = x*cos(-psi) - y*sin(-psi);
+            dirpoints_y[i] = x*sin(-psi) + y*cos(-psi);
+          }
+          
+          // fit a third grade polnoymial to the relative, optimal line         
+          auto coefficients = polyfit(dirpoints_x, dirpoints_y, 3);
+
+          // Calculate the initial cross track error
+          // Note: The points are provided and transformed to be relative to the
+          // car. The closer we are to the perfect line, the small the cte
+          double cte = polyeval(coefficients, 0);
+
+          // Calculate the initial orientation error
+          // As we calculate the points relative to the car the only valid value
+          // is the orientation provided at index 1
+          double eps = -atan(coefficients[1]);
+
+          const double dt = 0.1;
+          const double Lf = 2.67;
+
+          double next_x = v * dt;
+          double next_y = 0;
+          double next_psi = v * -delta / Lf * dt;
+          double next_v = v + a * dt;
+          double next_cte = cte + v * sin(eps) * dt;
+          double next_eps = eps + -delta / Lf * dt;
+
+          Eigen::VectorXd state(6);
+          state << next_x, next_y, next_psi, next_v, next_cte, next_eps;
+          
+          // Solve MPC using our helper class
+          auto values = mpc.Solve(state, coefficients);
 
           json msgJson;
           // NOTE: Remember to divide by deg2rad(25) before you send the steering value back.
           // Otherwise the values will be in between [-deg2rad(25), deg2rad(25] instead of [-1, 1].
-          msgJson["steering_angle"] = steer_value;
-          msgJson["throttle"] = throttle_value;
+          msgJson["steering_angle"] = values[0] / (deg2rad(25) * Lf);
+          msgJson["throttle"] = values[1];
 
           //Display the MPC predicted trajectory 
           vector<double> mpc_x_vals;
           vector<double> mpc_y_vals;
+
+          for (int i = 1; i < values.size()/2; ++i) {
+            mpc_x_vals.push_back(values[i*2]);
+            mpc_y_vals.push_back(values[i*2+1]);
+          }          
 
           //.. add (x,y) points to list here, points are in reference to the vehicle's coordinate system
           // the points in the simulator are connected by a Green line
@@ -120,6 +169,14 @@ int main() {
           //Display the waypoints/reference line
           vector<double> next_x_vals;
           vector<double> next_y_vals;
+
+          double polyStep = 2.0;
+          int polyPointCount = 20;
+          
+          for (int i = 1; i < polyPointCount; ++i) {
+            next_x_vals.push_back(polyStep * i);
+            next_y_vals.push_back(polyeval(coefficients, polyStep * i));
+          }          
 
           //.. add (x,y) points to list here, points are in reference to the vehicle's coordinate system
           // the points in the simulator are connected by a Yellow line
