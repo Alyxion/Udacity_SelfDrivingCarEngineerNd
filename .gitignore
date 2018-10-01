@@ -8,3 +8,5 @@ __pycache__
 checkpoint
 lenet.*
 /data
+cmake-*
+build

@@ -1,108 +1,116 @@
-# CarND-Controls-MPC
-Self-Driving Car Engineer Nanodegree Program
+# Model Predictive Control - Project 10
+***Udacity Self-Driving Car Engineer Nanodegree Program capstone project of term 2***
 
 ---
 
-## Dependencies
+[![](images/street.png)](https://www.youtube.com/watch?v=OQ3YNYTQ7DE&t=48s)
 
-* cmake >= 3.5
- * All OSes: [click here for installation instructions](https://cmake.org/install/)
-* make >= 4.1(mac, linux), 3.81(Windows)
-  * Linux: make is installed by default on most Linux distros
-  * Mac: [install Xcode command line tools to get make](https://developer.apple.com/xcode/features/)
-  * Windows: [Click here for installation instructions](http://gnuwin32.sourceforge.net/packages/make.htm)
-* gcc/g++ >= 5.4
-  * Linux: gcc / g++ is installed by default on most Linux distros
-  * Mac: same deal as make - [install Xcode command line tools]((https://developer.apple.com/xcode/features/)
-  * Windows: recommend using [MinGW](http://www.mingw.org/)
-* [uWebSockets](https://github.com/uWebSockets/uWebSockets)
-  * Run either `install-mac.sh` or `install-ubuntu.sh`.
-  * If you install from source, checkout to commit `e94b6e1`, i.e.
-    ```
-    git clone https://github.com/uWebSockets/uWebSockets
-    cd uWebSockets
-    git checkout e94b6e1
-    ```
-    Some function signatures have changed in v0.14.x. See [this PR](https://github.com/udacity/CarND-MPC-Project/pull/3) for more details.
+\>>> A short clip on [YouTube](https://www.youtube.com/watch?v=OQ3YNYTQ7DE) <<<
 
-* **Ipopt and CppAD:** Please refer to [this document](https://github.com/udacity/CarND-MPC-Project/blob/master/install_Ipopt_CppAD.md) for installation instructions.
-* [Eigen](http://eigen.tuxfamily.org/index.php?title=Main_Page). This is already part of the repo so you shouldn't have to worry about it.
-* Simulator. You can download these from the [releases tab](https://github.com/udacity/self-driving-car-sim/releases).
-* Not a dependency but read the [DATA.md](./DATA.md) for a description of the data sent back from the simulator.
+---
 
+## Overview
 
-## Basic Build Instructions
+In this project the task was to control a virtual Self-Driving Car on a race track which automatically follows a set of predefined waypoints obtained from an imaginery sensor fusion system as perfectly as possible while being limited by a set of constraints such as a limited steering angle and a cost function trying to keep an optimal speed of 90 km/h in my test scenario.
 
-1. Clone this repo.
-2. Make a build directory: `mkdir build && cd build`
-3. Compile: `cmake .. && make`
-4. Run it: `./mpc`.
+In difference to a PID Controller (Proportional Integral Differential) a Model Predictive Control system is optimized for not just reacting to concrete, current situations but also to predict the effect of latency and how the car could and would react in future steps given the constraints such as the mentioned limited steering angles and with respect to the costs defined.
 
-## Tips
+## The workflow
 
-1. It's recommended to test the MPC on basic examples to see if your implementation behaves as desired. One possible example
-is the vehicle starting offset of a straight line (reference). If the MPC implementation is correct, after some number of timesteps
-(not too many) it should find and track the reference line.
-2. The `lake_track_waypoints.csv` file has the waypoints of the lake track. You could use this to fit polynomials and points and see of how well your model tracks curve. NOTE: This file might be not completely in sync with the simulator so your solution should NOT depend on it.
-3. For visualization this C++ [matplotlib wrapper](https://github.com/lava/matplotlib-cpp) could be helpful.)
-4.  Tips for setting up your environment are available [here](https://classroom.udacity.com/nanodegrees/nd013/parts/40f38239-66b6-46ec-ae68-03afd8a601c8/modules/0949fca6-b379-42af-a919-ee50aa304e6a/lessons/f758c44c-5e40-4e01-93b5-1a82aa4e044f/concepts/23d376c7-0195-4276-bdf0-e02f1f3c665d)
-5. **VM Latency:** Some students have reported differences in behavior using VM's ostensibly a result of latency.  Please let us know if issues arise as a result of a VM environment.
+### Step 1: Receiving data from the client (sensor fusion unit)
 
-## Editor Settings
+In the first we we receive the current status from the imaginary sensor fusion unit which knows the vehicles current position, orientation as well as the map data relevant for the next planning steps. 
 
-We've purposefully kept editor configuration files out of this repo in order to
-keep it as simple and environment agnostic as possible. However, we recommend
-using the following settings:
+**This observation data contains:**
 
-* indent using spaces
-* set tab width to 2 spaces (keeps the matrices in source code aligned)
+* Nearby waypoints (following up) (ptsx/ptsy)
+* The car's location (x/y)
+* The car's orientation (psi)
+* The current steering angle
+* The current throttle (a value between -1 and 1)
+* The current speed in mph
 
-## Code Style
+The map data provided to us by this unit is absolute so we first of all need to convert it into our local space (into the sight of the driver) so all follow up calculations can be done relative to the car and independent of the real world position and orientation.
 
-Please (do your best to) stick to [Google's C++ style guide](https://google.github.io/styleguide/cppguide.html).
+### Step 2: Fitting a polynomial
 
-## Project Instructions and Rubric
+In the second step we fit a polynomial which "describes" the relative, optimal line.
 
-Note: regardless of the changes you make, your project must be buildable using
-cmake and make!
+### Step 3: Calculation of the initial error values
 
-More information is only accessible by people who are already enrolled in Term 2
-of CarND. If you are enrolled, see [the project page](https://classroom.udacity.com/nanodegrees/nd013/parts/40f38239-66b6-46ec-ae68-03afd8a601c8/modules/f1820894-8322-4bb3-81aa-b26b3c6dcbaf/lessons/b1ff3be0-c904-438e-aad3-2b5379f0e0c3/concepts/1a2255a0-e23c-44cf-8d41-39b8a3c8264a)
-for instructions and the project rubric.
+With help of the now localized data we can calculate the cross track error (CTE) of this polynomial and the initial orientation error (eps).
 
-## Hints!
+### Step 4: Predicting the latency
 
-* You don't have to follow this directory structure, but if you do, your work
-  will span all of the .cpp files here. Keep an eye out for TODOs.
+As we need to assume at least a minimal latency between our actual decisions and the application of our decisions we now predict how our states will likely look in 100ms:
 
-## Call for IDE Profiles Pull Requests
+```
+const double dt = 0.1;
+const double Lf = 2.67;
 
-Help your fellow students!
+double next_x = v * dt;
+double next_y = 0;
+double next_psi = v * -delta / Lf * dt;
+double next_v = v + a * dt;
+double next_cte = cte + v * sin(eps) * dt;
+double next_eps = eps + -delta / Lf * dt;
+```
 
-We decided to create Makefiles with cmake to keep this project as platform
-agnostic as possible. Similarly, we omitted IDE profiles in order to we ensure
-that students don't feel pressured to use one IDE or another.
+### Step 5: Defining the prediciton range
 
-However! I'd love to help people get up and running with their IDEs of choice.
-If you've created a profile for an IDE that you think other students would
-appreciate, we'd love to have you add the requisite profile files and
-instructions to ide_profiles/. For example if you wanted to add a VS Code
-profile, you'd add:
+In the next step (within our MPC class) we now define how far we predict into the future and with which interval.
 
-* /ide_profiles/vscode/.vscode
-* /ide_profiles/vscode/README.md
+I chose here a value of 10 time steps and an interval of 0.08 seconds.
 
-The README should explain what the profile does, how to take advantage of it,
-and how to install it.
+I tried several other values for N such as an N of 20 with an interval of 0.05 as well as 0.1.
 
-Frankly, I've never been involved in a project with multiple IDE profiles
-before. I believe the best way to handle this would be to keep them out of the
-repo root to avoid clutter. My expectation is that most profiles will include
-instructions to copy files to a new location to get picked up by the IDE, but
-that's just a guess.
+**My observations:**
 
-One last note here: regardless of the IDE used, every submitted project must
-still be compilable with cmake and make./
+* Planning too far into the future (above 2 seconds, such as N of 20 and dt of 0.1) (just increase N while keeping dt) will heavily destabalize the driving behavior, majorly if the car is approaching some sort of S-like curve
+* Using a far too small value for dt (such as 0.05) will as well lead to a more oscillating driving behavior
+* Using a horizont of about 1 second turned out to be optimal and is at a speed of around 80 km/h enough time to predict the route through a complete curve of this test track
 
-## How to write a README
-A well written README file can enhance your project and portfolio.  Develop your abilities to create professional README files by completing [this free course](https://www.udacity.com/course/writing-readmes--ud777).
+### Steps 6: Definition of the cost functions for potential solutions of the problem
+
+In step 6 we define the cost function `FG_eval.operator()(ADvector& fg, const ADvector& vars)` which is regularly called by the solver itself to compute the costs for the usage of actuators, the cross track and orientation error as the prediction gaps.
+
+It does this for each of our N defined time steps and calculates the state variables for each of these 9 steps (the 10th is the initial one at zero) using the following formulas and then calculates the offset to the initial state value:
+
+![](images/formulas.png)
+
+These cost factors and values for each time step are provided to the `Solve` function on demand. (the object is passed to ipopt and calls the operator defined)
+
+### Steps 7: Let's solve this
+
+In this penultimate step we make use of the libraries **CppAD** and **ipopt** to minimize the costs computed by our function defined in step 6.
+
+The ultimate goal of the function `CppAD::ipopt::solve` is to minimize the costs within the time horizont we previously defined or in other words to calculate **the optimal curve** (the red line below) which will get us back to the "perfect" center of the road (the blue line below which can though not be driven as displayd because of it's small curve radius) with an as small orientation offset as possible while at the same timing making as less use of the actuators as possible.
+
+![](images/trajectory.png)
+*Image (C) Udacity*
+
+### Step 8: Back to the bridge
+
+After this likely optimal curve and it's initial actuator values have been calculated we return the curve itself as the optimal actuation values to the interface function.
+
+The interface function which has been triggered now stores all data available in a JSON package which is returned to the server:
+
+* The likely optimal steering & throttle values
+* The reference line
+* The predicted trajectory
+
+A video of the driving behavior can be found here:
+
+[https://www.youtube.com/watch?v=OQ3YNYTQ7DE](https://www.youtube.com/watch?v=OQ3YNYTQ7DE)
+
+---
+
+## Appendix
+
+If you would like to try this project out yourself you can find the installation guide [here](setup.md).
+
+#### Important note:
+
+An OS X setup is quite tricky at the momen so I recommend using either Linux or the Ubuntu subsystem in Windows.
+
+If you intend to use the Ubuntu subsystem in Windows you need to take care that you clone this repository from the Ubuntu bash as otherwise the line-endings will be converted by Git for Windows making all shell scripts invalid.
