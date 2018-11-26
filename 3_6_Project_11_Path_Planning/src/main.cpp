@@ -1,3 +1,14 @@
+/**
+ * Project 11 of Udacity's Self-Driving Car Nanodegree Program - Path Planning
+ * The wask is to plan the trajectory of a car on a highway and to steer the vehicle along the lanes, handle overtaking
+ * maneuvers within a traffic jam and control speed with help of the data of the surround cars.
+ *
+ * Copyright (c) 2018 by Michael Ikemann - https://alyxion.github.io
+ *
+ * Original code Copyright (c) Udacity - https://www.Udacity.com
+ *
+ */
+
 #include <fstream>
 #include <math.h>
 #include <uWS/uWS.h>
@@ -166,6 +177,7 @@ vector<double> getXY(double s, double d, const vector<double> &maps_s, const vec
 
 // ---------------------------------------------------------------------------------------------------------------------
 
+/** @brief Enumerates the indices of the sensor fusion states */
 enum SensorFusionProperties
 {
 	VehicleX = 3,
@@ -174,6 +186,12 @@ enum SensorFusionProperties
 	VehicleS = 5
 };
 
+// ---------------------------------------------------------------------------------------------------------------------
+
+/** @brief The path planner class receives the data of a highway track, the data of a car and data of surrounding cars
+ * and shall calculate the movement direction, decide when to change lanes and the vehicle's precise trajectory to do
+ * so.
+ */
 class PathPlanner
 {
 protected:
@@ -183,18 +201,21 @@ protected:
 	vector<double> *mWayPointsDx = nullptr;	///< Holds the track's normal vectors at given point
 	vector<double> *mWayPointsDy = nullptr;	///< Holds the track's normal vectors at given point
 
+	double mFrequency = 0.02;		///< The frequency (in ms) at which the simulator is triggered and the nodes handled
 	int miLaneCount = 3;			///< Defines the count of lanes defined
 	double mLaneWidth = 4.0;		///< Defines the full lane width in meters
 	double mHalfLaneWidth = 2.0;	///< Defines the half lane width in meters
 	double mMaxLaneOffset = 0.25;	///< Maximum offset of lane center
+	double mdMaxLaneChangeCosts = 50;	///< Maximum costs up to a a lane change will be considered
+	int miMaxPenaltyBonus = 1000;	///< Defines the amount of "time" required before a lane change to the right.
+	double mdCriticalCosts = 100;	///< Costs to assign if a lane change is impossible / dangerous
 
 	double mOptimalSpeed = 49.5;	///< Defines the current road's optimal speed
 	double mMaxBrake = 0.224;		///< Defines the maximum deceleration per time step
 	double mMaxAccelerate = 0.224;	///< Defines the maximum acceleration per time step
-	double mSafetyBuffer = 20.0;		///< Defines the safety buffer in meters we require to change a lane
+	double mSafetyBuffer = 20.0;	///< Defines the safety buffer in meters we require to change a lane
 
 	int mPlanningPointCount = 50; 	///< Defines the count of points in the trajectory
-	double mFrequency = 0.02;		///< The frequency (in ms) at which the simulator is triggered and the nodes handled
 	double mTargetOffset = 30.0;	///< Defines the target offset in vehicle direction in meters
 	int miTargetLane = -1;			///< The current target lane. -1 = No lane switch planned
 	int miLeftLanePenalty = 0;		///< A penalty generated when staying for too long in the left lane for no reason
@@ -213,7 +234,7 @@ protected:
 
 	vector<double> mPreviousPathX;	///< Contains the previous path's x points
 	vector<double> mPreviousPathY;	///< Contains the previous path's y points
-	int mPrevSize = 0;
+	int miPreviousSize = 0;
 
 	vector<vector<double> >  mSensorFusionData;	///< Contains the sensor fusion data, so of all currently known vehicles on our road side
 
@@ -253,62 +274,77 @@ public:
 		mPreviousPathY = PreviousPathY;
 		mSensorFusionData = SensorFusionData;
 
-		mPrevSize = mPreviousPathX.size();
+		miPreviousSize = mPreviousPathX.size();
 
 		// update car's if required
-		if(mPrevSize>0)
+		if(miPreviousSize>0)
 		{
 			mCarS = mEndPathS;
 		}
 	}
 
 	//! Calculates the costs of each lane to decide where to continue driving
+	/** @return A vector of costs for each lane. The lower the costs the more attractive the lane is */
 	vector<double> CalculateLaneCosts()
 	{
-		double safetyDistance = CalculateSafetyDistance()*2;
+		double safetyDistance = CalculateSafetyDistance()*2;	// get the safety distance. for overtaking look two
+																// times as far into the future instead of needing
+																// to change lanes in the last possible moment.
 
 		int currentLane = GetCurrentLane();
 
-		vector<double> laneCosts;
-		vector<bool> blocked;
+		vector<double> laneCosts;	// the costs of each lane
 
 		for(int laneIndex=0; laneIndex<miLaneCount; ++laneIndex)
 		{
 			double costs = 0.0;
 
+			// don't allow two lanes in one step
+			if(abs(laneIndex-currentLane)>1)
+			{
+				costs += mdCriticalCosts;
+				laneCosts.push_back(costs);
+				continue;	// no need for further calculations if movement is critical
+			}
+
 			double laneCenter = laneIndex*mLaneWidth+mHalfLaneWidth;
 			double laneDiff = mCarD - laneCenter;
 
 			// the longer the car is on the left lanes, the more attractive right ones do become
-			int miMaxPenaltyBonus = 1000;
-			int penaltyBonus = miLeftLanePenalty;
-			if(penaltyBonus>miMaxPenaltyBonus)
 			{
-				penaltyBonus = miMaxPenaltyBonus;
-			}
-			costs += fabs(laneDiff*laneDiff/4)*((miMaxPenaltyBonus-penaltyBonus)/(double)miMaxPenaltyBonus);
-			costs += (miLaneCount-1-laneIndex)*2;	// make right lanes preferred by default
-
-			if(abs(laneIndex-currentLane)>1)	// don't allow two lanes in one step
-			{
-				costs += 400;
+				int penaltyBonus = miLeftLanePenalty;
+				if(penaltyBonus>miMaxPenaltyBonus)
+				{
+					penaltyBonus = miMaxPenaltyBonus;
+				}
+				costs += fabs(laneDiff*laneDiff/4)*((miMaxPenaltyBonus-penaltyBonus)/(double)miMaxPenaltyBonus);
+				costs += (miLaneCount-1-laneIndex)*2;	// make right lanes preferred by default
 			}
 
-			double blockedByCarInFront = 0.0;
-			bool blockedByCarAtSide = false;
 
+			double blockedByCarInFront = 0.0;		// penalty costs for a car in front of us on a lane, costs
+													// increase up to safetyDistance (about 50m at full speed) if
+													// a car is right in front of us
+			bool blockedByCarAtSide = false;		// remembers if there is a car right next to us on any frame or
+													// would likely hit us because it's much faster than our car
+
+			// for all cars nearby...
 			for(int i=0; i<mSensorFusionData.size(); ++i)
 			{
 				float d = mSensorFusionData[i][SensorFusionProperties::VehicleD];
-				if(d < (mHalfLaneWidth+mLaneWidth*laneIndex+mHalfLaneWidth) && d > (mHalfLaneWidth+mLaneWidth*laneIndex-mHalfLaneWidth) )
+				// is the car within this lane?
+				if(d < (mHalfLaneWidth+mLaneWidth*laneIndex+mHalfLaneWidth) &&
+				   d > (mHalfLaneWidth+mLaneWidth*laneIndex-mHalfLaneWidth) )
 				{
 					double vx = mSensorFusionData[i][SensorFusionProperties::VehicleX];
 					double vy = mSensorFusionData[i][SensorFusionProperties::VehicleY];
 
 					double check_speed = sqrt(vx*vx+vy*vy);
 
-					// check vehicles in front
-					double futureCarS = mSensorFusionData[i][SensorFusionProperties::VehicleS] + ((double)mPrevSize * mFrequency*check_speed);
+					// calculate lag corrected position of the car
+					double futureCarS = mSensorFusionData[i][SensorFusionProperties::VehicleS] + ((double)miPreviousSize * mFrequency*check_speed);
+
+					// is the car in front of us and within our safety distance? set costs the higher the closer the vehicle is
 					if(futureCarS>mCarS && (futureCarS-mCarS)<safetyDistance)
 					{
 						double bbf = safetyDistance-(futureCarS-mCarS);
@@ -324,35 +360,50 @@ public:
 					{
 						futureDist = 0.0;
 					}
+
+					// calculate "no-go" area which likely lead to a crash if blocked by a car
 					double safetyRegionStart = mCarS-mSafetyBuffer;
 					double safetyRegionEnd = mCarS+mSafetyBuffer;
 
+					// if the car is directly in front of us or will be (because it's far faster) likely be in front of us very soon or right next
+					// to our side... don't consider this lane
 					if(futureCarS+futureDist>=safetyRegionStart && futureCarS<=safetyRegionEnd)
 					{
 						blockedByCarAtSide = true;
+						break;		// no need for further tests
 					}
 				}
 			}
 
 			if(blockedByCarAtSide)
 			{
-				costs += 100;	// don't use the lane if there is a car blocking it
+				costs += mdCriticalCosts;	// don't use the lane if there is a car blocking it
 			}
-			costs += blockedByCarInFront; // if there is a car in front of any lane a lane switch should be considered
+			costs += blockedByCarInFront; 	// if there is a car in front of any lane a lane switch should be considered
 
-			laneCosts.push_back(costs);
+			laneCosts.push_back(costs);		// store overall lane costs
 		}
 
 		return laneCosts;
 	}
 
 	//! Returns the current lane index
+	/** @return The current lane's index. 0 = most left lane .. miLaneCount-1 */
 	int GetCurrentLane()
 	{
 		return mCarD/mLaneWidth;
 	}
 
+	//! Returns the offset (im meters) to the optimal lane center of the car's current lane
+	/** @return The offset in meters */
+	double GetLaneOffset()
+	{
+		int currentLane = GetCurrentLane();
+		return mCarD-(currentLane*mLaneWidth+mHalfLaneWidth);
+	}
+
 	//! Chooses the target lane
+	/** The target lane index */
 	int ChooseTargetLane()
 	{
 		int targetLane = 0;
@@ -368,7 +419,7 @@ public:
 		}
 
 		// don't change lances at all if situation is chaotic atm
-		double maxCosts = 50;
+		double maxCosts = mdMaxLaneChangeCosts;
 		if(bestCosts>maxCosts)
 		{
 			targetLane = GetCurrentLane();
@@ -405,10 +456,13 @@ public:
 
 		bool brake = false; // braking not required by default
 
+		// for all cars nearby...
 		for(int i=0; i<mSensorFusionData.size(); ++i)
 		{
+			// for all potential lanes (may be two while transitioning)
 			for(auto lane:lanes)
 			{
+				// is this car in this lane ?
 				float d = mSensorFusionData[i][SensorFusionProperties::VehicleD];
 				if(d < (mHalfLaneWidth+mLaneWidth*lane+mHalfLaneWidth) && d > (mHalfLaneWidth+mLaneWidth*lane-mHalfLaneWidth) )
 				{
@@ -417,8 +471,10 @@ public:
 					double check_speed = sqrt(vx*vx+vy*vy);
 					double futureCarS = mSensorFusionData[i][SensorFusionProperties::VehicleS];
 
-					futureCarS += ((double)mPrevSize * mFrequency *check_speed);
+					// calculate lag corrected position
+					futureCarS += ((double)miPreviousSize * mFrequency *check_speed);
 
+					// enable brakes if vehicle gets close
 					if(futureCarS>mCarS && (futureCarS-mCarS)<safetyDistance)
 					{
 						brake = true;
@@ -444,12 +500,15 @@ public:
 
 	//! Calculates the trajectory and how to behave in general in the current situation. Evaluates if a lane shift
 	//! makes sense, brakes and accelerates as appropriate.
-	void CalculateTrajectory(vector<double> &OutXVals, vector<double> &OutYVals)
+	void CalculateTrajectory(vector<double> &trajectoryCoordsX, vector<double> &trajectoryCoordsY)
 	{
-		int currentLane = mCarD/mLaneWidth;
-		double offset = mCarD-(currentLane*mLaneWidth+mHalfLaneWidth);
+		// ---- Consider lane switches ----
+		int currentLane = GetCurrentLane();
+		double offset = GetLaneOffset();
 
-		miLeftLanePenalty += (miLaneCount-1-currentLane); // remember for how long we are in the left lane
+		// Remember for how long we are in the left lane.
+		// Left lanes are penalized and lane switch costs decreases as longer we are in one of the left lanes
+		miLeftLanePenalty += (miLaneCount-1-currentLane);
 
 		if(miTargetLane==-1 && mCarSpeed>=mOptimalSpeed*2/3) // if there is no lane change in progress and we are fast enough so it's safe
 		{
@@ -467,94 +526,100 @@ public:
 				miTargetLane = -1;
 			}
 		}
-
 		int targetLane = miTargetLane!=-1 ? miTargetLane : currentLane;
 
-		CheckDistances();	// accelerate or brake as required
+		// ---- Accelerate or brake as required ----
+		CheckDistances();
 
 		double referenceX = mCarX;
 		double referenceY = mCarY;
 		double referenceYaw = deg2rad(mCarYaw);
 
-		vector<double> 	ptsx;
-		vector<double> 	ptsy;
-		if(mPrevSize<2)
+		// ---- Calculate anchor points for a spline computation. The first two points contain either the current
+		// trajectories most recent points or a guessed line based upon the car's current yaw ---
+
+		vector<double> 	anchorPointsX;
+		vector<double> 	anchorPointsY;
+		if(miPreviousSize<2) // Not enough data available? Construct points by backwards projecting the direction
 		{
 			double prev_car_x = mCarX - cos(mCarYaw);
 			double prev_car_y = mCarY - sin(mCarYaw);
 
-			ptsx.push_back(prev_car_x);
-			ptsy.push_back(prev_car_y);
+			anchorPointsX.push_back(prev_car_x);
+			anchorPointsY.push_back(prev_car_y);
 
-			ptsx.push_back(mCarX);
-			ptsy.push_back(mCarY);
+			anchorPointsX.push_back(mCarX);
+			anchorPointsY.push_back(mCarY);
 		}
-		else
+		else // if real data is available use nodes of previous path
 		{
-			referenceX = mPreviousPathX[mPrevSize-1];
-			referenceY = mPreviousPathY[mPrevSize-1];
+			referenceX = mPreviousPathX[miPreviousSize-1];
+			referenceY = mPreviousPathY[miPreviousSize-1];
 
-			double ref_x_prev = mPreviousPathX[mPrevSize-2];
-			double ref_y_prev = mPreviousPathY[mPrevSize-2];
+			double ref_x_prev = mPreviousPathX[miPreviousSize-2];
+			double ref_y_prev = mPreviousPathY[miPreviousSize-2];
 			referenceYaw = atan2(referenceY-ref_y_prev, referenceX-ref_x_prev);
 
-			ptsx.push_back(ref_x_prev);
-			ptsy.push_back(ref_y_prev);
+			anchorPointsX.push_back(ref_x_prev);
+			anchorPointsY.push_back(ref_y_prev);
 
-			ptsx.push_back(referenceX);
-			ptsy.push_back(referenceY);
+			anchorPointsX.push_back(referenceX);
+			anchorPointsY.push_back(referenceY);
 		}
 
+
+		// --- Add three future points on the target lane ---
 		for(int i=0; i<mBaseNodeCount; ++i)
 		{
-			vector<double> next_wp = getXY(mCarS + (i+1) * mBaseNodeStepping, (2+4*targetLane), *mWayPointsS, *mWayPointsX, *mWayPointsY);
-			ptsx.push_back(next_wp[0]);
-			ptsy.push_back(next_wp[1]);
+			vector<double> nextWayPoint = getXY(mCarS + (i+1) * mBaseNodeStepping, (mHalfLaneWidth+mLaneWidth*targetLane), *mWayPointsS, *mWayPointsX, *mWayPointsY);
+			anchorPointsX.push_back(nextWayPoint[0]);
+			anchorPointsY.push_back(nextWayPoint[1]);
 		}
 
-		for(int i=0; i<ptsx.size(); ++i)
+		// --- Transform anchor points to local coordinates ---
+		for(int i=0; i<anchorPointsX.size(); ++i)
 		{
-			double rel_x =ptsx[i]-referenceX;
-			double rel_y =ptsy[i]-referenceY;
+			double relativeX =anchorPointsX[i]-referenceX;
+			double relativeY =anchorPointsY[i]-referenceY;
 
-			ptsx[i] = (rel_x * cos(0-referenceYaw)-rel_y*sin(0-referenceYaw));
-			ptsy[i] = (rel_x * sin(0-referenceYaw)+rel_y*cos(0-referenceYaw));
+			anchorPointsX[i] = (relativeX * cos(-referenceYaw)-relativeY*sin(-referenceYaw));
+			anchorPointsY[i] = (relativeX * sin(-referenceYaw)+relativeY*cos(-referenceYaw));
 		}
 
+		// --- Calculate spline using the just defined anchor points ---
 		tk::spline s;
+		s.set_points(anchorPointsX, anchorPointsY);
 
-		s.set_points(ptsx, ptsy);
-
+		// --- Transfer the previous path's points so they will become the new nodes of the new trajectory ---
 		for(int i=0; i<mPreviousPathX.size(); ++i)
 		{
-			OutXVals.push_back(mPreviousPathX[i]);
-			OutYVals.push_back(mPreviousPathY[i]);
+			trajectoryCoordsX.push_back(mPreviousPathX[i]);
+			trajectoryCoordsY.push_back(mPreviousPathY[i]);
 		}
 
-		double target_y = s(mTargetOffset);
-		double target_dist = sqrt(mTargetOffset*mTargetOffset+target_y*target_y);
-
-		double x_add_on = 0;
-
+		// --- Add all missing points (always looking 1 second into the future) to the current trajectory ---
+		double targetS = s(mTargetOffset);
+		double targetDistance = sqrt(mTargetOffset*mTargetOffset+targetS*targetS);
+		double startX = 0;
 		for(int i=1; i<= mPlanningPointCount - mPreviousPathX.size(); ++i)
 		{
-			double N = (target_dist/(mFrequency*mTargetSpeed/2.24));
-			double x_point = x_add_on + (mTargetOffset)/N;
-			double y_point = s(x_point);
+			double N = (targetDistance/(mFrequency*mTargetSpeed/2.24));
+			double nextX = startX + (mTargetOffset)/N;
+			double nextY = s(nextX);
 
-			x_add_on = x_point;
+			startX = nextX;
 
-			double x_ref = x_point;
-			double y_ref = y_point;
+			auto orgNextX = nextX;
+			auto orgNextY = nextY;
 
-			x_point = (x_ref * cos(referenceYaw)-y_ref*sin(referenceYaw));
-			y_point = (x_ref * sin(referenceYaw)+y_ref*cos(referenceYaw));
+			nextX = (orgNextX * cos(referenceYaw)-orgNextY*sin(referenceYaw));
+			nextY = (orgNextX * sin(referenceYaw)+orgNextY*cos(referenceYaw));
 
-			x_point += referenceX;
-			y_point += referenceY;
+			nextX += referenceX;
+			nextY += referenceY;
 
-			OutXVals.push_back(x_point);
-			OutYVals.push_back(y_point);
+			trajectoryCoordsX.push_back(nextX);
+			trajectoryCoordsY.push_back(nextY);
 		}
 	}
 

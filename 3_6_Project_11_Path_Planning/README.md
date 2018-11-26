@@ -1,5 +1,130 @@
-# CarND-Path-Planning-Project
-Self-Driving Car Engineer Nanodegree Program
+# Highway Path Plannning
+
+#### Project 11 of Udacity's Self-Driving Car Engineer Nanodegree Program
+
+[![](documentation/sshot9.png)](https://www.youtube.com/watch?v=BzFJcJm_7Ko)
+[https://www.youtube.com/watch?v=BzFJcJm_7Ko](https://www.youtube.com/watch?v=BzFJcJm_7Ko)
+
+---
+
+## Overview
+
+The task of this project was to develop a control system for a Self-Driving Car which steers it safely along a highway within dense traffic, predicts the other car's behaviors, keeps a safe braking distance and overtakes other vehicles as safely as possible while always taking care of producing no unpleasant jerk or acceleration in general.
+
+## Tasks
+
+### Building the project
+
+The project was built using CLion using the CMakeFile provided by Udacity which can be easily imported. Alternatively the project can be build using the `./build.sh` script provided.
+Before building the project the script `install-mac.sh` should be executed or alternatively `install-ubuntu.sh` in Windows or the Ubuntu bash. Important note for Windows users: All bash scripts need to be pulled from Git in the Ubuntu-bash as they are not line break tolerant.
+
+## Rubrics
+
+#### The car is able to drive at least 4.32 miles without incident..
+
+The car (as recorded in the [YouTube video](https://www.youtube.com/watch?v=BzFJcJm_7Ko)) drives more than 5 miles (and likely till the fuel is out if nobody would stop it :).
+
+#### The car drives according to the speed limit.
+
+The car has a preset maximum speed of 49.5 miles per hour which it keeps constantly as long as there is no vehicle in it's way where it decelerates to keep a safe braking distance.
+
+#### Max Acceleration and Jerk are not Exceeded.
+
+The acceleration never exceeds 5 m/sˆ2 and the jerk is neglicible. This was realized by computing very smooth splines as proposed in the Q&A session.
+
+#### Car does not have collisions.
+
+The car didn't ever collide with any other cars within a 50 minute simulation. It predicts cars at front as well as estimating how fast another car "will reach us" on neighbour lanes to compute the lane change costs.
+
+#### The car stays in its lane, except for the time between changing lanes.
+
+The car stays constantly within it's lane. Next to the pure overtaking mechanism I also added another one which makes driving in the right lanes the more attractive the longer it is driving in one of the right ones.
+
+#### The car is able to change lanes
+
+The car smoothly changes lanes and also never changes more than one lane in one step. It does so by computing costs for each lane which are a combination of the likely speed in one of the neighbour lanes, how dangerous it is likely to move into this lane, how "left" the lane is (it prefers right ones if all lanes are empty).
+
+![](documentation/sshot7.png)
+
+---
+
+## Reflection
+
+The paths are computed 50 times a second so with an interval of 0.02 seconds.
+
+At each time interval following data is provided to the control unit (the one we wrote):
+
+* The remaining points of the current trajectory (if one was planned before)
+* The vehicle's position in cartesian as well as Frenet coordinates as well as it's speed.
+* The locations of all vehicles around us (on our sides of the highway)
+
+Also we know all road elements of the highway track and that each lane has a width of 4 meters.
+
+### Step 1: What to do? (Planning)
+
+Right after receiving the newest data update the first two values the logic unit computes are:
+
+* The target lane
+* The optimum speed in the current lane(s)
+
+![](documentation/sshot2.png)
+
+#### The target lane
+
+To decide which lane is currently the "most attractive one" the costs for each of the 3 lanes is computed as follows:
+
+* The base value for these costs is the squared side movement distance squared
+* Non neighbouring lanes are blocked (too dangerous - better step by step)
+* How fast we could likely move within the lane / how close we were to another vehicle in front of us in this lane (costs up to 35 if we are right behind another car)
+* How likely it is that we would collide with another car when switching lanes (theirs distance to us and theirs speed vs our speed). A 20 meter safety corridor is computed which may neither be intersected nor reached within a given time frame.
+* How long do we (unnecessarily) stay in one of the left lanes. There is a penalty base value and a penalty counter which makes a lane change from left to right more attactive within a time horizont of 10-20 seconds, assuming the right neighbour lane is as empty as the current one.
+
+### The speed
+
+To compute the speed the system first of all checks in which lanes the vehicle is currently located. If the car is currently transitioning from one lane to another and the offset from the lane's center exceeds a given threshold the current and the target lane into account.
+
+Then the safe-braking distance is calculated via `(speed/10)^2 + speed/10*3` and the current speed is adjusted if another vehicle is right in front of us in one of these lanes.
+
+The slower the vehicle is the less far it looks forward as the braking distance decreases in consequence.
+
+![](documentation/sshot8.png)
+
+### Step 2: Calculation of the trajectory
+
+After the planning is finished we create a spline defining the future trajectory, to do so we first of all need to define a set of anchors points.
+
+The first anchor points of this spline are either the most recent points (behind us) of the last defined trajectory or alternatively a back projected line computed with help of the car's known yaw.
+
+To these anchor points we now compute 3 additional ones far in front of us (in the future) in the target lane.
+
+To receive a clean, zero based X/Y graph we now transform all anchors points into the car local's coordinate system by translating and back rotating them by the car's location and yaw. Afterwards we compute a spline using these 5 anchor points which defines a smooth, jerkless transition from the most recent movements/the current direction to the desired target location and direction. Herefor we use the spline library by Tino Kluge.
+
+After the spline is computed we now first of all store the remaining, not yet reached points of the last trajectory and extend the queue to 50 elements with the points along the just computed spline and spaced by a 1/50th of the current speed so the simulator knows how fast to drive.
+
+![](documentation/sshot5.png)
+
+Now we transform the just computed, updated 50 trajectory points back into the global, carthesian coordinate system, store it in a json object and send this json object back to the simulator.
+
+### The code
+
+The whole logic is kept in the single file `main.cpp` and implemented in the central class `PathPlanner`.
+
+**PathPlanner** defines the following functions:
+
+* SetFrameData - Receives pointers and references to all data available. Is called every frame.
+* CalculateTrajectory - Triggers the whole logic and returns the 50 trajectory coordinates
+* CalculateLaneCosts - Calculates the costs for each lane, taking potential collisions, likely drivable speeds, required lane changes and also the lanes position (right lanes preferred) into account.
+* GetCurrentLane - Returns the current lane's index
+* GetLaneOffset - Returns the current offset to the lane's center
+* ChooseTargetLane - Chooses a new target lane. If another lane can be safely entered and promises a higher speed it is chosen. Also (with a 10 second cooldown) a more right lane is chosen above a more left one if all lanes are empty.
+* CalculateSafetyDistance - Calculates the minimum distance required to a car in front of us for a safe, smooth braking maneuver.
+* CheckDistances - Checks the distance to cars in front of us in our current and/or (if switching) of the target lane, brakes if necessary or accelerates again if possible.
+
+---
+
+# Project setup
+
+... in case you want to try this project yourself :).
    
 ### Simulator.
 You can download the Term3 Simulator which contains the Path Planning Project from the [releases tab (https://github.com/udacity/self-driving-car-sim/releases/tag/T3_v1.2).
@@ -134,7 +259,3 @@ that's just a guess.
 
 One last note here: regardless of the IDE used, every submitted project must
 still be compilable with cmake and make./
-
-## How to write a README
-A well written README file can enhance your project and portfolio.  Develop your abilities to create professional README files by completing [this free course](https://www.udacity.com/course/writing-readmes--ud777).
-
