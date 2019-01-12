@@ -1,0 +1,34 @@
+# Options file
+-include C:\Projects\Udacity_SelfDrivingCarEngineerNd\3_19_Functional_Software_Safety\work\Polyspace\gnu4_9.h
+-I C:\Projects\Udacity_SelfDrivingCarEngineerNd\3_19_Functional_Software_Safety\work\include\usr\lib\gcc\x86_64-linux-gnu\4.9\include
+-I C:\Projects\Udacity_SelfDrivingCarEngineerNd\3_19_Functional_Software_Safety\work\include\usr\lib\gcc\x86_64-linux-gnu\4.9\include-fixed
+-I C:\Projects\Udacity_SelfDrivingCarEngineerNd\3_19_Functional_Software_Safety\work\include\usr\include
+-I C:\Projects\Udacity_SelfDrivingCarEngineerNd\3_19_Functional_Software_Safety\work\include\usr\include\c++\4.9
+-I C:\Projects\Udacity_SelfDrivingCarEngineerNd\3_19_Functional_Software_Safety\work\include\usr\include\x86_64-linux-gnu\c++\4.9
+-I C:\Projects\Udacity_SelfDrivingCarEngineerNd\3_19_Functional_Software_Safety\work\include\usr\include\x86_64-linux-gnu
+-prog kalmanFilterProject_original
+-verif-version 1.0
+-author bnewman
+-sources-list-file C:\Projects\Udacity_SelfDrivingCarEngineerNd\3_19_Functional_Software_Safety\work\polyspace\Module_1\BF_Result\.settings\source_command.txt
+-lang CPP
+-target x86_64
+-compiler gnu4.9
+-cpp-version cpp11
+-dos
+-do-not-generate-results-for custom=C:\Projects\Udacity_SelfDrivingCarEngineerNd\3_19_Functional_Software_Safety\work\include,C:\Projects\Udacity_SelfDrivingCarEngineerNd\3_19_Functional_Software_Safety\work\src_original\Eigen
+-misra-cpp required-rules
+-disable-checkers all
+-main-generator-writes-variables uninit
+-main-generator-calls unused
+-class-analyzer all
+-class-analyzer-calls unused
+-no-stl-stubs
+-float-rounding-mode to-nearest
+-signed-integer-overflows forbid
+-unsigned-integer-overflows allow
+-uncalled-function-checks none
+-check-subnormal allow
+-O2
+-to Software Safety Analysis level 2
+-import-comments C:\Projects\Udacity_SelfDrivingCarEngineerNd\3_19_Functional_Software_Safety\work\polyspace\Module_1\BF_Result
+

@@ -1,0 +1,358 @@
+Remark: Option -float-rounding-mode has no effect in Polyspace Bug Finder
+Remark: Option -O2 has no effect in Polyspace Bug Finder
+Remark: Option -class-analyzer-calls has no effect in Polyspace Bug Finder
+Remark: Option -class-analyzer has no effect in Polyspace Bug Finder
+Remark: Option -main-generator-calls has no effect in Polyspace Bug Finder
+Remark: Option -main-generator-writes-variables has no effect in Polyspace Bug
+|       Finder
+Remark: Option -check-subnormal has no effect in Polyspace Bug Finder
+Remark: Option -uncalled-function-checks has no effect in Polyspace Bug Finder
+<polyspace-bug-finder-nodesktop R2018b PID13916 PGID13916>
+
+Polyspace verification of kalmanFilterProject_original project.
+Starting at 12/30/2018, 18h11.
+
+Option -signed-integer-overflows has no effect in Polyspace Bug Finder.
+Option -unsigned-integer-overflows has no effect in Polyspace Bug Finder.
+
+Activated checkers: No checkers activated!
+     
+
+Verifying sources compliance ...
+
+Options used with Verifier:
+-lang=CPP
+-polyspace-version=2.6 (R2018b)
+-date=30/12/2018
+
+User:
+-bug-finder=true (non-official option)
+-I1=C:\Projects\Udacity_SelfDrivingCarEngineerNd\3_19_Functional_Software_Safety\work\include\usr\lib\gcc\x86_64-linux-gnu\4.9\include
+-I2=C:\Projects\Udacity_SelfDrivingCarEngineerNd\3_19_Functional_Software_Safety\work\include\usr\lib\gcc\x86_64-linux-gnu\4.9\include-fixed
+-I3=C:\Projects\Udacity_SelfDrivingCarEngineerNd\3_19_Functional_Software_Safety\work\include\usr\include
+-I4=C:\Projects\Udacity_SelfDrivingCarEngineerNd\3_19_Functional_Software_Safety\work\include\usr\include\c++\4.9
+-I5=C:\Projects\Udacity_SelfDrivingCarEngineerNd\3_19_Functional_Software_Safety\work\include\usr\include\x86_64-linux-gnu\c++\4.9
+-I6=C:\Projects\Udacity_SelfDrivingCarEngineerNd\3_19_Functional_Software_Safety\work\include\usr\include\x86_64-linux-gnu
+-target=x86_64
+-compiler=gnu4.9
+-cpp-version=cpp11
+-dos=true
+-include1=C:\Projects\Udacity_SelfDrivingCarEngineerNd\3_19_Functional_Software_Safety\work\polyspace\gnu4_9.h
+-no-stl-stubs=true
+-to=Software Safety Analysis level 2
+-do-not-generate-results-for=custom=C:\Projects\Udacity_SelfDrivingCarEngineerNd\3_19_Functional_Software_Safety\work\include,C:\Projects\Udacity_SelfDrivingCarEngineerNd\3_19_Functional_Software_Safety\work\src_original\Eigen
+-results-dir=C:\Projects\Udacity_SelfDrivingCarEngineerNd\3_19_Functional_Software_Safety\work\polyspace\Module_1\BF_Result
+-verif-version=1.0
+-author=bnewman
+-prog=kalmanFilterProject_original
+-misra-cpp=required-rules
+-disable-checkers=[all]
+
+
+Verifying host configuration:
+Number of cores:                8
+Processor type:                 amd64
+Processor model:                Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz
+Processor frequency:            3.600 GHz
+Memory > 4 GB:                                                  31.94 GB
+Tmp space available in C:\Users\MICHAE~1\AppData\Local\Temp:    712.67 GB
+
+Remark: 8 core(s) detected. The verification creates 8 process(es).
+*** Configuration of the host :	OK
+
+
+Type C:\Projects\Udacity_SelfDrivingCarEngineerNd\3_19_Functional_Software_Safety\work\polyspace\Module_1\BF_Result\kill-rte-kernel.bat on host ZK-DS-BM01 to halt Verifier process
+
+
+Polyspace C++ analysis
+Copyright 1999-2018 The MathWorks, Inc.
+All rights reserved.
+
+Starting at: Sun Dec 30 18:11:39 2018
+Host: MINGW64_NTx_64-6.2 ZK-DS-BM01 0 amd64
+User: Michael Ikemann
+**********************************************************
+***
+*** GNU C++ 4.9 source compliance checking
+***
+**********************************************************
+Warning: wchar_t is defined as unsigned int
+
+Verifying sources ...
+Verifying FusionEKF.cpp (1/3)
+Verifying tools.cpp (2/3)
+Verifying kalman_filter.cpp (3/3)
+Global compilation phase...
+
+Number of files                  : 3
+Number of lines                  : 364
+Number of lines without comments : 186
+
+Verifying cross-files GNU C++ 4.9 compliance
+
+Stubbing standard library functions ...
+Remark: The generated default DRS XML file "drs-template.xml" can be found in <result_dir> folder.
+Doing code transformations ...
+
+
+**********************************************************
+MISRA C++ Rule checker results
+ Use the Report Generator in order to get the complete report.
+**********************************************************
+Summary per file:
+  File C:\Projects\Udacity_SelfDrivingCarEngineerNd\3_19_Functional_Software_Safety\work\src_original\FusionEKF.cpp: 
+    103 rules violated
+  File C:\Projects\Udacity_SelfDrivingCarEngineerNd\3_19_Functional_Software_Safety\work\src_original\FusionEKF.h: 
+    3 rules violated
+  File C:\Projects\Udacity_SelfDrivingCarEngineerNd\3_19_Functional_Software_Safety\work\src_original\kalman_filter.cpp: 
+    60 rules violated
+  File C:\Projects\Udacity_SelfDrivingCarEngineerNd\3_19_Functional_Software_Safety\work\src_original\kalman_filter.h: 
+    16 rules violated
+  File C:\Projects\Udacity_SelfDrivingCarEngineerNd\3_19_Functional_Software_Safety\work\src_original\measurement_package.h: 
+    5 rules violated
+  File C:\Projects\Udacity_SelfDrivingCarEngineerNd\3_19_Functional_Software_Safety\work\src_original\tools.cpp: 
+    42 rules violated
+  File C:\Projects\Udacity_SelfDrivingCarEngineerNd\3_19_Functional_Software_Safety\work\src_original\tools.h: 
+    1 rule violated
+**********************************************************
+Summary per rule:
+  rule 5-0-5 violated 78 times
+  rule 7-1-1 violated 43 times
+  rule 2-10-1 violated 32 times
+  rule 5-0-3 violated 24 times
+  rule 5-0-6 violated 15 times
+  rule 11-0-1 violated 10 times
+  rule 7-1-2 violated 6 times
+  rule 7-3-1 violated 4 times
+  rule 6-6-5 violated 3 times
+  rule 0-1-3 violated 2 times
+  rule 3-4-1 violated 2 times
+  rule 5-2-1 violated 2 times
+  rule 6-2-2 violated 2 times
+  rule 6-3-1 violated 2 times
+  rule 9-3-3 violated 2 times
+  rule 6-4-1 violated 1 time
+  rule 6-4-2 violated 1 time
+  rule 7-3-4 violated 1 time
+
+
+
+
+Packing compilation data
+
+Defects statistics:
+  - Total number of defects: 0
+done.
+
+**********************************************************
+***
+*** GNU C++ 4.9 source compliance checking done
+***
+**********************************************************
+Ending at: Sun Dec 30 18:13:01 2018
+User time for compilation: 00:01:21 (81.39real, 81.39u + 0s (0.06gc))
+
+Polyspace C++ analysis
+Copyright 1999-2018 The MathWorks, Inc.
+All rights reserved.
+
+Starting at: Sun Dec 30 18:13:01 2018
+Host: MINGW64_NTx_64-6.2 ZK-DS-BM01 0 amd64
+User: Michael Ikemann
+**********************************************************
+***
+*** Beginning Bug-finder - Pre-analysis
+***
+**********************************************************
+**** Bug-finder - Pre-analysis - 1 (P_AL)
+Total complexity = 94016
+**** Bug-finder - Pre-analysis - 1 (P_AL) took 3.38real, 3.38u + 0s (0.86gc)
+**** Bug-finder - Pre-analysis - 2 (P_ACP)
+* n-acp-t = 0 n-epp' = 0 n-acp-l = 0
+**** Bug-finder - Pre-analysis - 2 (P_ACP) took 0.08real, 0.08u + 0s (0.03gc)
+**** Bug-finder - Pre-analysis - 3 (P_O)
+**** Bug-finder - Pre-analysis - 3 (P_O) took 0.1real, 0.1u + 0s (0.02gc)
+**** Bug-finder - Pre-analysis - 4 (P_MA)
+**** Bug-finder - Pre-analysis - 4 (P_MA) took 0.8real, 0.8u + 0s (0.12gc)
+**** Bug-finder - Pre-analysis - 5 (P_G)
+**** Bug-finder - Pre-analysis - 5 (P_G) took 0.94real, 0.94u + 0s (0.12gc)
+**** Bug-finder - Pre-analysis - 6 (P_TT)
+**** Bug-finder - Pre-analysis - 6 (P_TT) took 0.03real, 0.03u + 0s
+**** Bug-finder - Pre-analysis - 7 (P_FI)
+**** Bug-finder - Pre-analysis - 7 (P_FI) took 9.75real, 9.75u + 0s (0.08gc)
+
+Generating GUI files
+
+Defects statistics:
+  - Total number of defects: 0
+
+GUI files generation completed in 0.81real
+
+**********************************************************
+***
+*** Bug-finder - Pre-analysis done
+***
+**********************************************************
+Ending at: Sun Dec 30 18:13:17 2018
+User time for pre-analysis: 00:00:16.39 (16.4real, 16.4u + 0s (0.06gc))
+
+Polyspace C++ analysis
+Copyright 1999-2018 The MathWorks, Inc.
+All rights reserved.
+
+Starting at: Sun Dec 30 18:13:17 2018
+Host: MINGW64_NTx_64-6.2 ZK-DS-BM01 0 amd64
+User: Michael Ikemann
+**********************************************************
+***
+*** Beginning Bug-finder - Function Analysis
+***
+**********************************************************
+**** Bug-finder - Function Analysis - 1 (Verified functions #1 to #100 on 1611) took 1.98real
+**** Bug-finder - Function Analysis - 2 (Verified functions #101 to #200 on 1611) took 1.82real
+**** Bug-finder - Function Analysis - 3 (Verified functions #201 to #300 on 1611) took 1.74real
+**** Bug-finder - Function Analysis - 4 (Verified functions #301 to #400 on 1611) took 1.85real
+**** Bug-finder - Function Analysis - 5 (Verified functions #401 to #500 on 1611) took 1.81real
+**** Bug-finder - Function Analysis - 6 (Verified functions #501 to #600 on 1611) took 1.78real
+**** Bug-finder - Function Analysis - 7 (Verified functions #601 to #700 on 1611) took 1.81real
+**** Bug-finder - Function Analysis - 8 (Verified functions #701 to #800 on 1611) took 1.84real
+**** Bug-finder - Function Analysis - 9 (Verified functions #801 to #900 on 1611) took 5.84real
+**** Bug-finder - Function Analysis - 10 (Verified functions #901 to #1000 on 1611) took 5.5real
+**** Bug-finder - Function Analysis - 11 (Verified functions #1001 to #1100 on 1611) took 5.37real
+**** Bug-finder - Function Analysis - 12 (Verified functions #1101 to #1200 on 1611) took 5.79real
+**** Bug-finder - Function Analysis - 13 (Verified functions #1201 to #1300 on 1611) took 6.1real
+**** Bug-finder - Function Analysis - 14 (Verified functions #1301 to #1400 on 1611) took 5.54real
+**** Bug-finder - Function Analysis - 15 (Verified functions #1401 to #1500 on 1611) took 5.78real
+**** Bug-finder - Function Analysis - 16 (Verified functions #1501 to #1600 on 1611) took 5.57real
+**** Bug-finder - Function Analysis - 17 (Verified functions #1601 to #1611 on 1611) took 0.43real
+
+Generating GUI files
+
+Defects statistics:
+  - Total number of defects: 0
+
+GUI files generation completed in 0.96real
+
+* Total IL complexity: 605650
+
+**********************************************************
+***
+*** Bug-finder - Function Analysis done
+***
+**********************************************************
+Ending at: Sun Dec 30 18:14:21 2018
+User time for function: 00:01:03 (63.65real, 63.65u + 0s (0.08gc))
+
+Polyspace C++ analysis
+Copyright 1999-2018 The MathWorks, Inc.
+All rights reserved.
+
+Starting at: Sun Dec 30 18:14:21 2018
+Host: MINGW64_NTx_64-6.2 ZK-DS-BM01 0 amd64
+User: Michael Ikemann
+**********************************************************
+***
+*** Beginning Bug-finder - Module Analysis
+***
+**********************************************************
+**** Bug-finder - Module Analysis - 1 (Computing modules)
+* Created 3 modules
+**** Bug-finder - Module Analysis - 1 (Computing modules) took 0.1real, 0.1u + 0s (0.03gc)
+**** Bug-finder - Module Analysis - (Verifying module #1 / 3: 71 functions)
+**** Bug-finder - Module Analysis - (Verifying module #2 / 3: 689 functions)
+**** Bug-finder - Module Analysis - (Verifying module #3 / 3: 844 functions)
+**** Bug-finder - Module Analysis - (Verifying module #1 / 3: 71 functions) took 0.82real
+**** Bug-finder - Module Analysis - (Verifying module #2 / 3: 689 functions) took 25.26real
+**** Bug-finder - Module Analysis - (Verifying module #3 / 3: 844 functions) took 27.51real
+
+Generating GUI files
+
+Defects statistics:
+  - Total number of defects: 0
+
+GUI files generation completed in 0.98real
+
+**********************************************************
+***
+*** Bug-finder - Module Analysis done
+***
+**********************************************************
+Ending at: Sun Dec 30 18:14:50 2018
+User time for module: 00:00:29.79 (29.79real, 29.79u + 0s (0.08gc))
+
+Polyspace C++ analysis
+Copyright 1999-2018 The MathWorks, Inc.
+All rights reserved.
+
+Starting at: Sun Dec 30 18:14:50 2018
+Host: MINGW64_NTx_64-6.2 ZK-DS-BM01 0 amd64
+User: Michael Ikemann
+**********************************************************
+***
+*** Beginning Bug-finder - Global analysis
+***
+**********************************************************
+**** Bug-finder - Global analysis - 1 (P_CCG)
+**** Bug-finder - Global analysis - 1 (P_CCG) took 0real, 0u + 0s
+
+Generating GUI files
+
+Defects statistics:
+  - Total number of defects: 0
+
+GUI files generation completed in 1.08real
+
+
+**********************************************************
+MISRA C++ Rule checker results
+ Use the Report Generator in order to get the complete report.
+**********************************************************
+Summary per file:
+  File C:\Projects\Udacity_SelfDrivingCarEngineerNd\3_19_Functional_Software_Safety\work\src_original\FusionEKF.cpp: 
+    103 rules violated
+  File C:\Projects\Udacity_SelfDrivingCarEngineerNd\3_19_Functional_Software_Safety\work\src_original\FusionEKF.h: 
+    3 rules violated
+  File C:\Projects\Udacity_SelfDrivingCarEngineerNd\3_19_Functional_Software_Safety\work\src_original\kalman_filter.cpp: 
+    61 rules violated
+  File C:\Projects\Udacity_SelfDrivingCarEngineerNd\3_19_Functional_Software_Safety\work\src_original\kalman_filter.h: 
+    16 rules violated
+  File C:\Projects\Udacity_SelfDrivingCarEngineerNd\3_19_Functional_Software_Safety\work\src_original\measurement_package.h: 
+    5 rules violated
+  File C:\Projects\Udacity_SelfDrivingCarEngineerNd\3_19_Functional_Software_Safety\work\src_original\tools.cpp: 
+    42 rules violated
+  File C:\Projects\Udacity_SelfDrivingCarEngineerNd\3_19_Functional_Software_Safety\work\src_original\tools.h: 
+    1 rule violated
+**********************************************************
+Summary per rule:
+  rule 5-0-5 violated 78 times
+  rule 7-1-1 violated 43 times
+  rule 2-10-1 violated 32 times
+  rule 5-0-3 violated 24 times
+  rule 5-0-6 violated 15 times
+  rule 11-0-1 violated 10 times
+  rule 7-1-2 violated 6 times
+  rule 7-3-1 violated 4 times
+  rule 6-6-5 violated 3 times
+  rule 0-1-3 violated 2 times
+  rule 3-4-1 violated 2 times
+  rule 5-2-1 violated 2 times
+  rule 6-2-2 violated 2 times
+  rule 6-3-1 violated 2 times
+  rule 9-3-3 violated 2 times
+  rule 0-1-9 violated 1 time
+  rule 6-4-1 violated 1 time
+  rule 6-4-2 violated 1 time
+  rule 7-3-4 violated 1 time
+
+**********************************************************
+***
+*** Bug-finder - Global analysis done
+***
+**********************************************************
+Ending at: Sun Dec 30 18:14:52 2018
+User time for global: 00:00:01.43 (1.43real, 1.43u + 0s (0.11gc))
+User time for polyspace-bug-finder-nodesktop: 00:03:12 (192.84real, 192.84u + 0s (0.41gc))
+
+***
+*** End of Polyspace analysis
+***

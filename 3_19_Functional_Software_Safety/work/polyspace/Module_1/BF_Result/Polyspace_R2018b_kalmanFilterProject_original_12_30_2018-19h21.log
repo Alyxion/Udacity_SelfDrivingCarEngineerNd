@@ -1,0 +1,90 @@
+Remark: Option -float-rounding-mode has no effect in Polyspace Bug Finder
+Remark: Option -O2 has no effect in Polyspace Bug Finder
+Remark: Option -class-analyzer-calls has no effect in Polyspace Bug Finder
+Remark: Option -class-analyzer has no effect in Polyspace Bug Finder
+Remark: Option -main-generator-calls has no effect in Polyspace Bug Finder
+Remark: Option -main-generator-writes-variables has no effect in Polyspace Bug
+|       Finder
+Remark: Option -check-subnormal has no effect in Polyspace Bug Finder
+Remark: Option -uncalled-function-checks has no effect in Polyspace Bug Finder
+<polyspace-bug-finder-nodesktop R2018b PID7156 PGID7156>
+
+Polyspace verification of kalmanFilterProject_original project.
+Starting at 12/30/2018, 19h21.
+
+Option -signed-integer-overflows has no effect in Polyspace Bug Finder.
+Option -unsigned-integer-overflows has no effect in Polyspace Bug Finder.
+
+Activated checkers: No checkers activated!
+     
+
+Verifying sources compliance ...
+
+Options used with Verifier:
+-lang=CPP
+-polyspace-version=2.6 (R2018b)
+-date=30/12/2018
+
+User:
+-bug-finder=true (non-official option)
+-I1=C:\Projects\Udacity_SelfDrivingCarEngineerNd\3_19_Functional_Software_Safety\work\include\usr\lib\gcc\x86_64-linux-gnu\4.9\include
+-I2=C:\Projects\Udacity_SelfDrivingCarEngineerNd\3_19_Functional_Software_Safety\work\include\usr\lib\gcc\x86_64-linux-gnu\4.9\include-fixed
+-I3=C:\Projects\Udacity_SelfDrivingCarEngineerNd\3_19_Functional_Software_Safety\work\include\usr\include
+-I4=C:\Projects\Udacity_SelfDrivingCarEngineerNd\3_19_Functional_Software_Safety\work\include\usr\include\c++\4.9
+-I5=C:\Projects\Udacity_SelfDrivingCarEngineerNd\3_19_Functional_Software_Safety\work\include\usr\include\x86_64-linux-gnu\c++\4.9
+-I6=C:\Projects\Udacity_SelfDrivingCarEngineerNd\3_19_Functional_Software_Safety\work\include\usr\include\x86_64-linux-gnu
+-target=x86_64
+-compiler=gnu4.9
+-cpp-version=cpp11
+-dos=true
+-include1=C:\Projects\Udacity_SelfDrivingCarEngineerNd\3_19_Functional_Software_Safety\work\polyspace\gnu4_9.h
+-no-stl-stubs=true
+-to=Software Safety Analysis level 2
+-do-not-generate-results-for=custom=C:\Projects\Udacity_SelfDrivingCarEngineerNd\3_19_Functional_Software_Safety\work\include,C:\Projects\Udacity_SelfDrivingCarEngineerNd\3_19_Functional_Software_Safety\work\src_original\Eigen
+-import-comments=C:\Projects\Udacity_SelfDrivingCarEngineerNd\3_19_Functional_Software_Safety\work\polyspace\Module_1\BF_Result\comments_bak
+-results-dir=C:\Projects\Udacity_SelfDrivingCarEngineerNd\3_19_Functional_Software_Safety\work\polyspace\Module_1\BF_Result
+-verif-version=1.0
+-author=bnewman
+-prog=kalmanFilterProject_original
+-misra-cpp=required-rules
+-disable-checkers=[all]
+
+
+Verifying host configuration:
+Number of cores:                8
+Processor type:                 amd64
+Processor model:                Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz
+Processor frequency:            3.600 GHz
+Memory > 4 GB:                                                  31.94 GB
+Tmp space available in C:\Users\MICHAE~1\AppData\Local\Temp:    712.43 GB
+
+Remark: 8 core(s) detected. The verification creates 8 process(es).
+*** Configuration of the host :	OK
+
+
+Type C:\Projects\Udacity_SelfDrivingCarEngineerNd\3_19_Functional_Software_Safety\work\polyspace\Module_1\BF_Result\kill-rte-kernel.bat on host ZK-DS-BM01 to halt Verifier process
+
+
+Polyspace C++ analysis
+Copyright 1999-2018 The MathWorks, Inc.
+All rights reserved.
+
+Starting at: Sun Dec 30 19:22:00 2018
+Host: MINGW64_NTx_64-6.2 ZK-DS-BM01 0 amd64
+User: Michael Ikemann
+**********************************************************
+***
+*** GNU C++ 4.9 source compliance checking
+***
+**********************************************************
+Warning: wchar_t is defined as unsigned int
+
+Verifying sources ...
+Verifying FusionEKF.cpp (1/3)
+C:\Projects\Udacity_SelfDrivingCarEngineerNd\3_19_Functional_Software_Safety\work\src_original\FusionEKF.cpp, line 159: error: identifier "minValue" is undefined
+|      if ((fabs(x)<minValue) && (fabs(y)<minValue)) // avoid NaN values, just predict the current state
+|                   ^
+
+C:\Projects\Udacity_SelfDrivingCarEngineerNd\3_19_Functional_Software_Safety\work\src_original\FusionEKF.cpp: warning: Failed compilation.
+Verifying tools.cpp (2/3)
+"Remark: Analysis stopped by zk-ds-bm01\michael ikemann at 19:22:19 30.12.2018. " 

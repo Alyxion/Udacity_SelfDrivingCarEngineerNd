@@ -10,3 +10,4 @@ lenet.*
 /data
 cmake-*
 build
+~*
